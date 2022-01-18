@@ -15,7 +15,7 @@ class GameDateProvider {
     late dynamic _apiResponse;
     try {
       final _response = await httpClient.get(Uri.parse(
-          'https://spoyer.ru/api/en/get.php?login=ayna&token=12784-OhJLY5mb3BSOx0O&task=predata&sport=basketball&day=today'));
+          getAllUpcomingMatchesUrl()));
       _apiResponse = returnResponse(_response, 'games_pre');
     } on SocketException catch (e) {
       throw FetchDataException("No Internet Connection");
@@ -45,12 +45,16 @@ class GameDateProvider {
           'https://spoyer.ru/api/get.php?login=ayna&token=12784-OhJLY5mb3BSOx0O&task=odds&game_id=$gameId',
         ),
       );
-      _apiResponse = returnResponse(
-        _response,'odds'
-      );
+      _apiResponse = returnResponse(_response, 'odds');
     } on SocketException catch (e) {
       throw FetchDataException('No Internet Connection');
     }
     return _apiResponse;
   }
+}
+
+String getAllUpcomingMatchesUrl() {
+  return Platform.localeName.split('_')[0] == "en"
+      ? "https://spoyer.ru/api/en/get.php?login=ayna&token=12784-OhJLY5mb3BSOx0O&task=predata&sport=basketball&day=today"
+      : "https://spoyer.ru/api/get.php?login=ayna&token=12784-OhJLY5mb3BSOx0O&task=predata&sport=basketball&day=today";
 }

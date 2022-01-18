@@ -9,6 +9,8 @@ import 'package:page_transition/page_transition.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:winleague/utils/winleague_custom_functions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:winleague/translations/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,43 +24,43 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<GameBloc>().state;
-    debugPrint("This is games");
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text(
-          "Matches",
+        title: Text(
+          LocaleKeys.matchesLabel.tr(),
           style: kAppBarTextStyle,
         ),
       ),
       body: SingleChildScrollView(
-          child: state.when(
-              initial: () => const Center(
-                    child: Text("init"),
-                  ),
-              loading: () => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-              loaded: (games) {
-                debugPrint("The loaded games are $games}");
-                return Column(
-                  children: games.map((game) {
-                    final team = TeamTile(
-                      game: game,
-                      colorIndex: colorIndex,
-                    );
-
-                    setState(() {
-                      colorIndex++;
-                    });
-
-                    return team;
-                  }).toList(),
+        child: state.when(
+          initial: () => const Center(
+            child: Text("init"),
+          ),
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          loaded: (games) {
+            return Column(
+              children: games.map((game) {
+                final team = TeamTile(
+                  game: game,
+                  colorIndex: colorIndex,
                 );
-              },
-              error: (message) => Center(
-                    child: Text(message),
-                  ))),
+
+                setState(() {
+                  colorIndex++;
+                });
+
+                return team;
+              }).toList(),
+            );
+          },
+          error: (message) => Center(
+            child: Text(message),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -187,21 +189,23 @@ class TeamTile extends StatelessWidget {
             color: kWhiteColor,
             size: 20.0,
           ),
-          errorWidget: (context, url, err) => const CircleAvatar(
+          errorWidget: (context, url, err) => CircleAvatar(
             radius: 20.0,
-            child: Icon(
-              Icons.image,
-              color: kWhiteColor,
+            child: Image.asset(
+              'assets/images/team_image.png',
             ),
           ),
         ),
         const SizedBox(
           width: 10.0,
         ),
-        Text(
-          name,
-          overflow: TextOverflow.clip,
-          style: kTeamLabelTextStyle,
+        ConstrainedBox(
+         constraints: const BoxConstraints(maxWidth: 150),
+          child: Text(
+            name,
+            overflow: TextOverflow.clip,
+            style: kTeamLabelTextStyle,
+          ),
         )
       ],
     );

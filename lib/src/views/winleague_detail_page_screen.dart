@@ -9,6 +9,9 @@ import 'package:winleague/src/controllers/previos_bloc/previous_match_bloc.dart'
 import 'package:winleague/src/models/winleague_game_model.dart';
 import 'package:winleague/utils/winleague_constants.dart';
 import 'package:winleague/utils/winleague_custom_functions.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:winleague/translations/locale_keys.g.dart';
+import 'package:flutter_svg/flutter_svg.dart' as svg;
 
 class EventDetail extends StatefulWidget {
   const EventDetail({
@@ -39,8 +42,6 @@ class _EventDetailState extends State<EventDetail> {
     // final size = MediaQuery.of(context).size;
     final state = context.watch<PreviousMatchBloc>().state;
     final oddState = context.watch<GameOddBloc>().state;
-    
-    print('data is generated');
 
     return Scaffold(
       appBar: AppBar(
@@ -53,8 +54,8 @@ class _EventDetailState extends State<EventDetail> {
             color: kOrangeColor,
           ),
         ),
-        title: const Text(
-          "Event",
+        title: Text(
+          LocaleKeys.eventLabel.tr(),
           style: kAppBarTextStyle,
         ),
       ),
@@ -86,14 +87,39 @@ class _EventDetailState extends State<EventDetail> {
                     height: 20.0,
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildTeamNameAndIcon(
                         widget.game.home.id,
                         widget.game.home.name,
                       ),
-                      CustomPaint(
-                        painter: MyPainter(),
+                      Stack(
+                        children: [
+                          Row(
+                            children: [
+                              svg.SvgPicture.asset(
+                                "assets/images/Ellipse4.svg",
+                                width: 30.0,
+                              ),
+                              const SizedBox(
+                                height: 6.0,
+                              ),
+                              svg.SvgPicture.asset(
+                                "assets/images/Ellipse6.svg",
+                                width: 30.0,
+                              ),
+                            ],
+                          ),
+                          const Positioned(
+                            top: 10,
+                            left: 10,
+                            child: Text(
+                              '50\ngames',
+                              textAlign: TextAlign.center,
+                              style: kTeamLabelTextStyle,
+                            ),
+                          )
+                        ],
                       ),
                       _buildTeamNameAndIcon(
                         widget.game.away.id,
@@ -104,63 +130,68 @@ class _EventDetailState extends State<EventDetail> {
                 ],
               ),
             ),
-            _buildTitleLabel("Odds"),
+            _buildTitleLabel(LocaleKeys.oddsLabel.tr()),
             Padding(
-              padding:
-                  const EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
-              child: oddState.when(
-                initial: ()=>  const Center(
-                      child: Text("init"),
-                    ), 
-                loading: () =>const Center(
-                      child: CircularProgressIndicator(),
-                    ), 
-                loaded: (state){
-                  debugPrint("The game odd is $state");
-                  return  Row(
-                children: [
-                  _buildOddLabel(double.parse(state.homeOdd)),
-                  const SizedBox(
-                    width: 20.0,
-                  ),
-                  _buildOddLabel(double.parse(state.awayOdd))
-                ],
-              );
-                }, 
-                error:(errorMessage) => Center(
-                    child: Text(errorMessage),
-                  )
-                )
-            ),
-            _buildTitleLabel("Past matches"),
+                padding:
+                    const EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
+                child: oddState.when(
+                    initial: () => const Center(
+                          child: Text("init"),
+                        ),
+                    loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                    loaded: (state) {
+                      debugPrint("The game odd is $state");
+                      return Row(
+                        children: [
+                          _buildOddLabel(double.parse(state.homeOdd)),
+                          const SizedBox(
+                            width: 20.0,
+                          ),
+                          _buildOddLabel(double.parse(state.awayOdd))
+                        ],
+                      );
+                    },
+                    error: (errorMessage) => Center(
+                          child: Text(errorMessage),
+                        ))),
+            _buildTitleLabel(LocaleKeys.pastMatches.tr()),
             const Divider(
               color: Colors.grey,
             ),
             state.when(
-                initial: () => const Center(
-                      child: Text("init"),
-                    ),
-                loading: () => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                loaded: (state) {
-                  debugPrint("Previus games are $state");
-                  return Column(
-                    children: state.map((match) {
-                      final _result = match.score;
-                      return _buildPastMatchTile(
-                        _result!.isEmpty ? "10" : _result.split(":")[0],
-                        CustomFunctions.getDate(match.time, '.'),
-                        _result.isEmpty ? "20" : _result.split(':')[1],
-                      );
-                    }).toList(),
-                  );
-                },
-                error: (message) {
-                  return Center(
-                    child: Text(message),
-                  );
-                }),
+              initial: () => const Center(
+                child: Text("init"),
+              ),
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              loaded: (state) {
+                debugPrint("Previus games are $state");
+                return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: state.isEmpty
+                        ? [
+                            const Center(
+                              child: Text("No matches"),
+                            )
+                          ]
+                        : state.map((match) {
+                            final _result = match.score;
+                            return _buildPastMatchTile(
+                              _result!.isEmpty ? "10" : _result.split(":")[0],
+                              CustomFunctions.getDate(match.time, '.'),
+                              _result.isEmpty ? "20" : _result.split(':')[1],
+                            );
+                          }).toList());
+              },
+              error: (message) {
+                return Center(
+                  child: Text(message),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -258,11 +289,10 @@ class _EventDetailState extends State<EventDetail> {
                   color: kBlackColoTwo,
                   size: 20.0,
                 ),
-                errorWidget: (context, url, err) => const CircleAvatar(
+                errorWidget: (context, url, err) => CircleAvatar(
                   radius: 20.0,
-                  child: Icon(
-                    Icons.image,
-                    color: kWhiteColor,
+                  child: Image.asset(
+                    'assets/images/team_image.png',
                   ),
                 ),
               ),
@@ -272,34 +302,17 @@ class _EventDetailState extends State<EventDetail> {
         const SizedBox(
           height: 10.0,
         ),
-        Text(
-          name,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 2,
-          textAlign: TextAlign.center,
-          style: kAppBarTextStyle.copyWith(fontSize: 15, color: kWhiteColor),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 100),
+          child: Text(
+            name,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            style: kAppBarTextStyle.copyWith(fontSize: 15, color: kWhiteColor),
+          ),
         )
       ],
     );
-  }
-}
-
-class MyPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const rect = Rect.fromLTRB(50, 100, 250, 200);
-    final startAngle = -math.pi / 2;
-    final sweepAngle = math.pi;
-    const useCenter = false;
-    final paint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
-    canvas.drawArc(rect, startAngle, sweepAngle, useCenter, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }
